@@ -1,59 +1,81 @@
-var geoData;
+var canvas;
+var config = { 
+	"width": 700, 
+	"height": 300,
+	//"topY": 42.5,
+	//"topX": -11.1,
+	//"scale": 6
+	//"topY": 38.79,
+	//"topX": -9.05,
+	//"scale": 0.2
+	"topY": 38.79,
+	"topX": -9.05,
+	"scale": 0.5
+	};
 
 $(document).ready(function() {
-	loadGeoData();
+	canvas = $('#map');
+	
+	resizeCanvas();
 	drawGeoData();
 });
 
-function loadGeoData() {
-	geoData = {
-		"points": [
-			{ 
-				"id": 1, "type": "track", "latitude": 0, "longitude": 0 
-			},
-			{ 
-				"id": 2, "type": "track", "latitude": 10, "longitude": 10 
-			},
-			{ 
-				"id": 3, "type": "track", "latitude": 15, "longitude": 40 
-			},
-			{ 
-				"id": 4, "type": "track", "latitude": 70, "longitude": 70 
-			}
-		],
-		"paths" : [
-			{
-				"id": 1, "pathgroup": 1, "startpoint": 1, "endpoint": 2
-			},
-			{
-				"id": 2, "pathgroup": 1, "startpoint": 2, "endpoint": 4
-			},
-			{
-				"id": 3, "pathgroup": 1, "startpoint": 4, "endpoint": 3
-			}
-		]
-	}
+function resizeCanvas() {
+	canvas.attr('width', config.width);
+	canvas.attr('height', config.height);
 }
 
 function drawGeoData() {
-	var canvas = $('#map');
+	
+	
+	for (var i in geoData.nodes) {
+		var m;
+		var b;		
+		var node = geoData.nodes[i];
+		var point = {"x": 0, "y": 0};
 
-	for (var i in geoData.points) {
+		/*
+		point.x = node.lon*canvas.attr('width')/(config.topX - config.scale);
+		point.y = config.scale/canvas.attr('width') * node.lat + config.topY - config.scale;
+		*/
+
+		m = -canvas.attr('width') / config.scale;
+		b = -m*config.topX;
+		//point.x =  m * node.lon + b;
+		point.x = (-Math.abs(node.lon)+Math.abs(config.topX)+config.scale)*canvas.attr('width')/config.scale;
+
+		m = -canvas.attr('height') / config.scale;
+		b = -m*config.topY;
+		point.y = m * node.lat + b;
+
 		canvas.drawArc({
-				fillStyle: "black",
-				x: geoData.points[i].longitude,
-				y: geoData.points[i].latitude,
-				radius: 10
+				layer: true,
+				fillStyle: "#AAA",
+				x: point.x,
+				y: point.y,
+				radius: 5,
+				
 			});
+		
+		canvas.drawText({
+			x: point.x,
+			y: point.y-12,
+			fontSize: "12px",
+			fillStyle: "#AAA",
+			text: node.tags[0].v
+		});
+		/*
 		if (i>0) {
+			var prevNode = geoData.nodes[i-1];
 			canvas.drawLine({
 					strokeStyle: "#000",
-					strokeWidth: "5",
-					x1: geoData.points[i].longitude,
-					y1: geoData.points[i].latitude,
-					x2: geoData.points[i-1].longitude,
-					y2: geoData.points[i-1].latitude
+					strokeWidth: "2",
+					x1: node.lon,
+					y1: node.lat,
+					x2: prevNode.lon,
+					y2: prevNode.lat,
 				});
 		}
+		*/
 	}
 }
